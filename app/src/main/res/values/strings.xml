@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Weather_forecast</string>
+    <string name="app_name">天気予報</string>
+    <string name="Title">3時間毎5日間天気</string>
+    <string name="where">47都道府県選択可能</string>
 </resources>
