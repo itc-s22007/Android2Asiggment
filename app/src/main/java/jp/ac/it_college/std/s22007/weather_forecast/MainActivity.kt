@@ -1,18 +1,23 @@
 package jp.ac.it_college.std.s22007.weather_forecast
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -22,29 +27,48 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.ac.it_college.std.s22007.weather_forecast.api.Client
+import jp.ac.it_college.std.s22007.weather_forecast.api.WeatherGroup
 import jp.ac.it_college.std.s22007.weather_forecast.data.CityData
 import jp.ac.it_college.std.s22007.weather_forecast.data.citiesList
 import jp.ac.it_college.std.s22007.weather_forecast.ui.theme.Weather_forecastTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-
+enum class ScreenState {
+    Onboarding, NextScreen
+}
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Weather_forecastTheme {
-                MyApp(modifier = Modifier.fillMaxSize())
+                var currentScreen by rememberSaveable { mutableStateOf(ScreenState.Onboarding) }
+                var selectedCityId by rememberSaveable { mutableStateOf<String?>(null) }
+
+                when (currentScreen){
+                    ScreenState.Onboarding -> OnboardingScreen {
+                        currentScreen = ScreenState.NextScreen
+                    }
+                    ScreenState.NextScreen -> {
+                        NextScreen(selectedCityId = selectedCityId)
+                    }
+                }
             }
         }
     }
@@ -57,17 +81,22 @@ private fun MyApp(modifier: Modifier = Modifier) {
     Surface(modifier) {
         if (shouldShowOnboarding) {
             OnboardingScreen(
+                modifier = Modifier,
                 onContinueClicked = {
                     shouldShowOnboarding = false
-                })
+                    var currentScreen = ScreenState.NextScreen
+
+                }
+
+            )
         }
     }
 }
 
 @Composable
 private fun OnboardingScreen(
-    onContinueClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onContinueClicked: () -> Unit
 ) {
     var selectedCityId by rememberSaveable {
         mutableStateOf<String?>(null)
@@ -83,13 +112,10 @@ private fun OnboardingScreen(
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.displayMedium,
         )
-        Text(
-            "都道府県を選択",
-        )
+        Text("都道府県を選択",)
         Demo_ExposedDropdownMenuBox { cityId ->
             selectedCityId = cityId
         }
-
         Button(
             onClick = {
                 selectedCityId?.let { id ->
@@ -98,15 +124,48 @@ private fun OnboardingScreen(
                         "選択された都道府県のID: $id",
                         Toast.LENGTH_SHORT
                     ).show()
+                    onContinueClicked()
                 }
-            }
+            },
+            enabled = selectedCityId != null
         ) {
-            Text("次へ")
+            Text(
+                "検索",
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
 
+@Composable
+fun NextScreen(
+    modifier: Modifier = Modifier,
+    selectedCityId: String?
+) {
+    var selectedCityName by remember{ mutableStateOf("")}
 
+    LaunchedEffect(selectedCityId){
+        selectedCityId?.let {
+            val selectedCity = citiesList.find { city -> city.id == it }
+            selectedCityName = selectedCity?.name ?: ""
+        }
+    }
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "天気",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.displayMedium,
+        )
+        Column (
+            modifier = modifier.fillMaxSize()
+        ) {
+            Text(text = "場所:$selectedCityName")
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,6 +174,7 @@ fun Demo_ExposedDropdownMenuBox(onCitySelected: (String) -> Unit) {
     val citiesList = citiesList
     var expanded by remember { mutableStateOf(false) }
     var selectedCity by remember { mutableStateOf(citiesList[0]) }
+
 
     Box(
         modifier = Modifier
@@ -154,10 +214,20 @@ fun Demo_ExposedDropdownMenuBox(onCitySelected: (String) -> Unit) {
     }
 }
 
+
+
 @Preview
 @Composable
 fun MyAppPreview() {
     Weather_forecastTheme {
         MyApp()
+    }
+}
+
+@Preview
+@Composable
+fun NextScreenView(){
+    Weather_forecastTheme {
+        NextScreen(selectedCityId = "")
     }
 }
