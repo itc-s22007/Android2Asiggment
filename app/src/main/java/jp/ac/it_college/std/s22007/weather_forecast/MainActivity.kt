@@ -1,23 +1,18 @@
 package jp.ac.it_college.std.s22007.weather_forecast
 
-import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -27,11 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,13 +34,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.ac.it_college.std.s22007.weather_forecast.api.WeatherGroup
-import jp.ac.it_college.std.s22007.weather_forecast.data.CityData
 import jp.ac.it_college.std.s22007.weather_forecast.data.citiesList
 import jp.ac.it_college.std.s22007.weather_forecast.ui.theme.Weather_forecastTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 enum class ScreenState {
     Onboarding, NextScreen
@@ -87,7 +75,6 @@ private fun MyApp(modifier: Modifier = Modifier) {
                     var currentScreen = ScreenState.NextScreen
 
                 }
-
             )
         }
     }
@@ -163,6 +150,8 @@ fun NextScreen(
             modifier = modifier.fillMaxSize()
         ) {
             Text(text = "場所:$selectedCityName")
+            Text(text = stringResource(id = R.string.weather))
+            Text(text = stringResource(id = R.string.temperature))
         }
     }
 }
